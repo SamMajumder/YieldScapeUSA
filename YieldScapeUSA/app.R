@@ -181,7 +181,8 @@ server <- function(input, output, session) {  # Added session argument
   
   df <- reactive({
     Sunflower %>% 
-      filter(YEAR == input$year & STATE == input$state)
+      filter(YEAR == input$year & STATE == input$state) %>% 
+      st_transform(crs=4326)
   })
   
   observeEvent(input$state, {

@@ -125,9 +125,6 @@ st_crs(States)
 Sunflower <- Sunflower %>% 
                 inner_join(States)
 
-## I am doing this for shinylive so that I have a better looking non-interactive map ##
-Sunflower_2 <- Sunflower %>% 
-                  right_join(States)
 
 
 
@@ -151,42 +148,19 @@ Sunflower <- Sunflower %>%
   st_as_sf() 
 
 
-Sunflower_2 <- Sunflower_2 %>%
-  # Remove counties that only occur once in the dataset
-  group_by(COUNTYNAME) %>%
-  filter(n() > 1) %>%
-  ungroup() %>%
-  # Remove years where only one county is represented
-  group_by(YEAR) %>%
-  filter(n() > 1) %>%
-  ungroup() %>%
-  # Remove state-year combinations with only one county or no yield values
-  group_by(STATE, YEAR) %>%
-  filter(n_distinct(COUNTYNAME) > 1 & any(!is.na(YIELD))) %>%
-  ungroup() %>%
-  # Convert to simple features object (if your data is spatial)
-  st_as_sf() 
 
 
 
-
-
+### the frst file is going to b
 ### save this file #### 
 
 path_to_save <- here("YieldScapeUSA",
                      "Sunflower.RDS")
 
-
-
-
 saveRDS(Sunflower,path_to_save)
 
 
 
-path_to_save_shiny_live <- here("YieldScapeUSA_shinylive",
-                                "Sunflower_shinylive.RDS")
-
-saveRDS(Sunflower_2,path_to_save_shiny_live)
 
 
 

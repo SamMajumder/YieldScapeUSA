@@ -9,12 +9,37 @@ YieldScapeUSA is an interactive visualization tool designed to illustrate agricu
 - **Custom Data Upload 📤**: Upload your own RDS data file to visualize yield statistics for different crops and locations.
 - **Dynamic Selections ⚙️**: Choose geometry, time, administrative, and value columns from your data to suit your analysis needs.
 - **Dynamic Time Slider ⏳**: Adjust the time slider to view yield data for specific years, dynamically changing based on your data.
-- **Color-Coded Yield Values 🎨**: Yield values are color-coded for visual distinction between high and low yield areas.
+- **Color-Coded Yield Values 🎨**: Yield values are color-coded for visual distinction between high and low yield areas. (Choropleth maps)
 - **Detailed Hover Information ℹ️**: Hover over a region to view detailed yield information, including state and county names alongside yield values.
+
 
 ## 📊 Data
 
 The data visualized in the app is user-provided, allowing for a wide variety of agricultural yield data to be displayed. This feature enables the app to serve as a flexible tool for analyzing yield trends across different crops and regions over time.
+
+### Input Expectations 📑
+The app accepts RDS files containing spatial data. Here are the expectations for the input data to ensure accurate visualization:
+
+1. **File Format**: The data file should be in RDS format.
+2. **Spatial Data**: The data should contain spatial geometry information for accurate mapping.
+3. **Columns**: 
+   - A `Geometry` column representing the spatial geometry of each data point.
+   - A `Time` column representing the time dimension (e.g., year) of the data.
+   - An `Admin` column representing the first level of administrative division (e.g., State).
+   - An `Admin 2` column representing the second level of administrative division (e.g., County).
+   - A `Value` column representing the yield values.
+   
+   The actual column names in your data can be different, as you will direct the app to the appropriate columns through dropdown selections.
+
+### Example Data Structure 📋
+```plaintext
+| Geometry | Time | Admin | Admin 2 | Value |
+|----------|------|-------|---------|-------|
+| ...      | 1976 | ND    | Stark   | 1234  |
+| ...      | 1976 | ND    | Dunn    | 5678  |
+| ...      | 1977 | SD    | Jones   | 9101  |
+| ...      | 1977 | SD    | Lyman   | 1121  |
+
 
 ## 💻 Technologies
 

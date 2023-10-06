@@ -27,7 +27,7 @@ The app accepts RDS files containing spatial data. Here are the expectations for
    - A `Time` column representing the time dimension (e.g., year) of the data.
    - An `Admin` column representing the first level of administrative division (e.g., State).
    - An `Admin 2` column representing the second level of administrative division (e.g., County).
-   - A `Value` column representing the yield values.
+   - A `Value` column representing the yield values or any other values that you wish to visualize
    
    The actual column names in your data can be different, as you will direct the app to the appropriate columns through dropdown selections.
 
@@ -67,7 +67,7 @@ YieldScapeUSA is deployed on ShinyApps.io and can be accessed [here](https://sam
 
 ## 🤝 Contributions
 
-Feel free to fork the repository, create feature branches, and send us your pull requests for enhancements!
+Feel free to fork the repository, create feature branches, and send me your pull requests for enhancements!
 
 ## 📜 License
 

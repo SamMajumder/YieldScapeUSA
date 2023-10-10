@@ -1,0 +1,440 @@
+---
+title: "Tutorial"
+author: "Dr. Sambadi Majumder"
+format: 
+  html:
+    self-contained: true
+editor: visual
+---
+
+# Introduction
+
+***YieldScapeUSA*** is an interactive visualization tool designed to illustrate agricultural yield data across the United States. In this tutorial I will be showing you how I am building this tool. I am going to be using the cultivation information of oilseed sunflower in the US as a way to demonstrate the method of preparing the data for using this tool.
+
+I will also be showing you how to build the app from scratch.
+
+Before we begin, I wanted to share some information about oil seed sunflower cultivation recorded by the USDA across the main producing states.
+
+![](Yield.gif)
+
+# Phase1: Data acquisition and preprocessing
+
+## Installing and loading libraries
+
+Before running the script, ensure you have the necessary libraries installed. The ***install.packages*** function is used to download and install R packages from CRAN. If you already have these packages installed, you can skip this step
+
+```{r}
+#install.packages(c("tidyUSDA", "tidyverse", "sf", "here", "leaflet", "shiny"))
+```
+
+Load the required libraries which will be used throughout the project. The ***lapply*** function is used to apply the ***require*** function to every package name in the list.
+
+```{r}
+
+packages <- c("tidyUSDA","tidyverse","sf","here","leaflet")
+
+lapply(packages, require,character.only =T)
+
+```
+
+## Fetching the data
+
+Data from the USDA [Quick Stats](https://www.nass.usda.gov/Quick_Stats/) database using an API key and the ***tidyUSDA R*** package. You can get your own API key [here](https://quickstats.nass.usda.gov/api/) . I am going to fetch yield, area planted and area havested data for oilseed sunflower cultivation int he US from 1976 to 2022 as an example. Here are the steps
+
+1.  Define the temporal range of the data
+
+```{r}
+
+
+years <- c("1976","1977","1978","1979","1980","1981","1982","1983","1984",
+           "1985","1986","1987","1988","1989","1990","1991","1992","1993",
+           "1994","1995","1996","1997","1998","1999","2000","2001","2002",
+           "2003","2004","2005","2006","2007","2008","2009","2010","2011",
+           "2012","2013","2014","2015","2016","2017","2018","2019","2020",
+           "2021","2022")
+
+
+
+
+
+```
+
+2.  Fetch the data using the ***getQuickstat*** function
+
+```{r}
+
+key <- "D923D273-EDCC-3FA9-AE2B-E5513DD00E06"
+
+
+### Fetch yield data
+
+Sunflower_Yield <- getQuickstat(sector='CROPS',
+                                group = "FIELD CROPS",
+                                commodity = "SUNFLOWER",
+                                category = "YIELD",
+                                domain = "TOTAL",
+                                key = key,
+                                program = 'SURVEY',
+                                data_item = "SUNFLOWER, OIL TYPE - YIELD, MEASURED IN LB / ACRE",
+                                geographic_level = 'COUNTY',
+                                year = years)
+
+
+## Fetch Area Harvested data ##
+
+Area_Harvested <- getQuickstat(sector='CROPS',
+                               group = "FIELD CROPS",
+                               commodity = "SUNFLOWER",
+                               category = "AREA HARVESTED",
+                               domain = "TOTAL",
+                               key = key,
+                               program = 'SURVEY',
+                               data_item = "SUNFLOWER, OIL TYPE - ACRES HARVESTED",
+                               geographic_level = 'COUNTY',
+                               year = years)
+
+
+## Fetch Area Planted data
+
+Area_Planted <- getQuickstat(sector='CROPS',
+                             group = "FIELD CROPS",
+                             commodity = "SUNFLOWER",
+                             category = "AREA PLANTED",
+                             domain = "TOTAL",
+                             key = key,
+                             program = 'SURVEY',
+                             data_item = "SUNFLOWER, OIL TYPE - ACRES PLANTED",
+                             geographic_level = 'COUNTY',
+                             year = years)
+
+
+```
+
+## Cleaning the datasets
+
+The approach taken to clean yield, area planted and area harvested data is the same. Here are the general steps that have been applied to the datasets:
+
+1.  This line initiates a series of operations on the dataset using the pipe (***%\>%***) operator from the ***dplyr*** package.
+
+2.  ***dplyr::filter(county_name != "OTHER (COMBINED) COUNTIES")***: Filters out rows where ***county_name*** is ***"OTHER (COMBINED) COUNTIES"***
+
+3.  ***dplyr::filter(county_name != "OTHER COUNTIES")***: Filters out rows where ***county_name*** is ***"OTHER COUNTIES"***
+
+4.  ***dplyr::filter(state_name != "CALIFORNIA")***: Filters out rows where ***state_name*** is ***"CALIFORNIA"***
+
+5.  ***dplyr::select(year,state_alpha,county_name,Value)***: Selects only sepcified columns in the dataset
+
+6.  ***dplyr::rename(YEAR = year, YIELD = Value, STATE = state_alpha, COUNTYNAME = county_name)***: Renames the selected columns for better readability or consistency
+
+7.  ***mutate(COUNTYNAME = gsub(" ","\_",COUNTYNAME))***: Replaces spaces with underscores in ***COUNTYNAME*** column using the ***gsub*** function
+
+```{r}
+#########
+###  Cleaning the datasets ###
+######## 
+
+Sunflower_Yield <- Sunflower_Yield %>% 
+  dplyr::filter(county_name != "OTHER (COMBINED) COUNTIES") %>%
+  dplyr::filter(county_name != "OTHER COUNTIES") %>%
+  dplyr::filter(state_name != "CALIFORNIA") %>%
+  dplyr::select(year,state_alpha,county_name,Value) %>%
+  dplyr::rename(YEAR = year,
+                YIELD = Value,
+                STATE = state_alpha,
+                COUNTYNAME = county_name) %>% 
+  mutate(COUNTYNAME = gsub(" ","_",COUNTYNAME))
+
+
+Area_Harvested <- Area_Harvested %>% 
+  dplyr::filter(county_name != "OTHER (COMBINED) COUNTIES") %>%
+  dplyr::filter(county_name != "OTHER COUNTIES") %>%
+  dplyr::filter(state_name != "CALIFORNIA") %>%
+  dplyr::select(year,state_alpha,county_name,Value) %>%
+  dplyr::rename(YEAR = year,
+                ACRES_HARVESTED = Value,
+                STATE = state_alpha,
+                COUNTYNAME = county_name) %>% 
+  mutate(COUNTYNAME = gsub(" ","_",COUNTYNAME))
+
+
+Area_Planted <- Area_Planted %>% 
+  dplyr::filter(county_name != "OTHER (COMBINED) COUNTIES") %>%
+  dplyr::filter(county_name != "OTHER COUNTIES") %>%
+  dplyr::filter(state_name != "CALIFORNIA") %>%
+  dplyr::select(year,state_alpha,county_name,Value) %>%
+  dplyr::rename(YEAR = year,
+                ACRES_PLANTED = Value,
+                STATE = state_alpha,
+                COUNTYNAME = county_name) %>% 
+  mutate(COUNTYNAME = gsub(" ","_",COUNTYNAME))
+
+
+```
+
+## Joining the three datsets
+
+Joining the cleaned datasets on common columns to have a single dataset. Using the reduce function from the ***purrr*** package to ***inner join*** the three datasets.
+
+```{r}
+
+########
+#### Joining the area planted, harvested and yield datasets ###
+#### 
+
+Sunflower <- list(Sunflower_Yield,Area_Planted,
+                  Area_Harvested) %>% 
+             purrr::reduce(inner_join) 
+
+```
+
+## Reading in county centroid information
+
+The country centroid file was sourced from [here](https://www.weather.gov/gis/Counties)
+
+```{r}
+#### read in the state shape file #### 
+
+States <- st_read(here("Datasets_and_data_processing","US_county_centroids",
+                       "c_08mr23.shp")) %>% 
+  dplyr::mutate(COUNTYNAME = str_to_upper(COUNTYNAME)) %>% 
+  dplyr::select(STATE,COUNTYNAME,LON,LAT,geometry)
+
+```
+
+and join the county centroid information with the sunflower dataset and perform some further data processing.
+
+1.  Filtering counties which have only one representation
+
+2.  Remove counties that only occur once in the dataset
+
+3.  Remove years where only one county is represented
+
+4.  Remove state-year combinations with only one county or no yield values
+
+5.  Convert to simple features object (if your data is spatial)
+
+```{r}
+
+### Lets join the two ### 
+### and filter the counties which have only one representation
+
+Sunflower <- Sunflower %>% 
+                inner_join(States) 
+
+
+
+Sunflower <- Sunflower %>%
+  # Remove counties that only occur once in the dataset
+  group_by(COUNTYNAME) %>%
+  filter(n() > 1) %>%
+  ungroup() %>%
+  # Remove years where only one county is represented
+  group_by(YEAR) %>%
+  filter(n() > 1) %>%
+  ungroup() %>%
+  # Remove state-year combinations with only one county or no yield values
+  group_by(STATE, YEAR) %>%
+  filter(n_distinct(COUNTYNAME) > 1 & any(!is.na(YIELD))) %>%
+  ungroup() %>%
+  # Convert to simple features object (if your data is spatial)
+  st_as_sf() 
+
+
+
+```
+
+## Saving the file
+
+```{r}
+
+path_to_save <- here("YieldScapeUSA",
+                     "Sunflower.RDS")
+
+saveRDS(Sunflower,path_to_save)
+
+```
+
+# Creating the Shiny app
+
+## Loading the libraries
+
+Loading the necessary libraries (install if not loaded using ***install.packages*** as shown above)
+
+```{r}
+
+library(shiny)
+library(leaflet)
+library(sf)
+library(tidyverse)
+
+
+```
+
+## Creating the UI of the app
+
+1.  ***ui \<- bootstrapPage(...)***: Begins definition of the UI using a Bootstrap framework.
+
+    -   ***tags\$style(type = "text/css", "html, body {width:100%;height:100%}")***: Applies custom CSS to set the HTML and body to full width and height.
+
+    -   ***leafletOutput("map", width = "100%", height = "100%")***: Creates a placeholder for a Leaflet map.
+
+    -   ***absolutePanel(..)***: Creates a draggable, fixed panel for control inputs.
+
+    -   Various arguments like ***"id", "class", "fixed", "draggable"***, etc., are used to style the position in the panel.
+
+    -   ***fileInput, uiOutput***: Various UI elements like file input and dropdown selectors are defined within the panel.
+
+```{r}
+
+ui <- bootstrapPage(
+  tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
+  leafletOutput("map", width = "100%", height = "100%"),
+  absolutePanel(
+    id = "controls",
+    class = "panel panel-default",
+    fixed = TRUE,
+    draggable = TRUE,
+    top = 60, left = "auto", right = 20, bottom = "auto",
+    width = 330, height = "auto",
+    fileInput("file", "Upload your RDS file", accept = c(".rds")),
+    uiOutput("geometry_ui"),
+    uiOutput("time_ui"),
+    uiOutput("admin_ui"),
+    uiOutput("admin2_ui"),
+    uiOutput("value_ui"),
+    uiOutput("slider_ui")
+  )
+)
+
+
+```
+
+## Creating the server of the app
+
+1.  ***server \<- function(input, output, session){..}***: Begins definition of server logic.
+
+2.  ***data_reactive \<- reactive({...})***: Defines a reactive expression to read in the data file uploaded by the user.
+
+3.  ***req(input\$file)***: Ensures a file is uploaded before attempting to read.
+
+4.  ***readRDS(input***$file$***datapath***): Reads the RDS file from the provided path
+
+5.  ***output\$geometry_ui \<- renderUI({..})***: Renders a UI element for selecting geometry based on the dataset's column names.
+
+6.  ***output\$time_ui \<- renderUI({..})*** (and similar lines for ***admin_ui, admin2_ui, value_ui***):Renders UI elements for various selections.
+
+7.  ***output\$slider_ui \<- renderUI({})*****:** Renders a UI slider based on the time column of the dataset.
+
+8.  ***filtered_data \<- reactive({..})***: Defines a reactive expression to filter data based on the time slider value.
+
+9.  ***output\$map \<- renderLeaflet({...})***: Renders a Leaflet map based on user inputs and filtered data.
+
+```{r}
+
+server <- function(input, output, session) {
+  
+  data_reactive <- reactive({
+    req(input$file)
+    readRDS(input$file$datapath)
+  })
+  
+  output$geometry_ui <- renderUI({
+    req(data_reactive())
+    selectInput("geometry", "Geometry:", choices = names(data_reactive()))
+  })
+  
+  output$time_ui <- renderUI({
+    req(data_reactive())
+    selectInput("time", "Time:", choices = names(data_reactive()))
+  })
+  
+  output$admin_ui <- renderUI({
+    req(data_reactive())
+    selectInput("admin", "Admin:", choices = names(data_reactive()))
+  })
+  
+  output$admin2_ui <- renderUI({
+    req(data_reactive())
+    selectInput("admin2", "Admin 2:", choices = names(data_reactive()))
+  })
+  
+  output$value_ui <- renderUI({
+    req(data_reactive())
+    selectInput("value", "Value:", choices = names(data_reactive()))
+  })
+  
+  output$slider_ui <- renderUI({
+    req(input$time)
+    df <- data_reactive()
+    time_values <- df[[input$time]]
+    sliderInput("time_slider", "Time:",
+                min = min(time_values, na.rm = TRUE),
+                max = max(time_values, na.rm = TRUE),
+                value = min(time_values, na.rm = TRUE),
+                step = 1)
+  })
+  
+  # Create a new reactive function for the filtered data
+  filtered_data <- reactive({
+    req(input$time_slider)
+    df <- data_reactive()
+    df[df[[input$time]] == input$time_slider,]
+  })
+  
+  output$map <- renderLeaflet({
+    req(data_reactive(), input$geometry, input$time, input$admin, input$admin2, input$value)
+    df <- filtered_data()  # Get the filtered data using the new reactive function
+    
+    geometry_column <- input$geometry
+    time_column <- input$time
+    admin_column <- input$admin
+    admin2_column <- input$admin2
+    value_column <- input$value
+    
+    pal <- colorNumeric(palette = "YlGnBu", domain = df[[value_column]])
+    
+    leaflet(df) %>%
+      addProviderTiles(providers$CartoDB.Positron) %>%
+      addPolygons(
+        fillColor = ~pal(df[[value_column]]),
+        fillOpacity = 0.7, 
+        color = "#BDBDC3", 
+        weight = 1,
+        label = ~paste0(df[[admin_column]], " ", df[[admin2_column]], ": ", df[[value_column]]),  
+        # Adjusted label
+        labelOptions = labelOptions(
+          style = list("font-weight" = "normal", padding = "3px 8px"),
+          textsize = "15px",
+          direction = "auto"
+        )
+      ) %>%
+      addLegend(pal = pal, values = df[[value_column]], 
+                title = paste("Values of", value_column),
+                position = "bottomright")
+  })
+  
+}
+
+```
+
+## Run the app
+
+```{r}
+
+shinyApp(ui, server)
+
+```
+
+The shiny app is deployed [here](https://sammajumder.shinyapps.io/YieldScapeUSA/)
+
+and here is a screenshot of what the app looks like so far
+
+![](Screenshot (818).png)
+
+1\) The app prompts the user for the file which contains spatial information in the RDS format
+
+2\) The user needs to select the column which has the geometry (polygon) information from the dropdown
+
+3\) Similarly, columns which have the temporal information (Year, month etc), admin zones 1 and 2 (for example: state followed by county), the value to be visualized (for example seed yield) need to be selected by the user.
+
+4\) The app is interactive, which means, the user will be able to know the specific value of yield/area planted/area harvested for any location within the choropleth map

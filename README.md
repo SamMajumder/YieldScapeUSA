@@ -3,6 +3,10 @@
 
 YieldScapeUSA is an interactive visualization tool designed to illustrate agricultural yield data across the United States. Initially showcasing oilseed sunflower yield data across counties in North Dakota (ND), South Dakota (SD), and Minnesota (MN), the app now provides a platform for users to upload and visualize their own yield data across different crops and regions.
 
+## 🌐 Deployment (check out the app)
+
+YieldScapeUSA is deployed on ShinyApps.io and can be accessed [here](https://sammajumder.shinyapps.io/YieldScapeUSA/).
+
 ## 🚀 Features
 
 - **Interactive Map 🗺️**: Engage with a dynamic map to explore yield data across various geographical regions.
@@ -54,9 +58,6 @@ The app accepts RDS files containing spatial data. Here are the expectations for
 - **Additional Built-in Data Sets 🌽**: Integrate yield data for other major crops to provide built-in data sets for users.
 - **Enhanced Filtering and Analytics 🔍**: Implement advanced filtering options and analytics to offer deeper insights into yield trends.
 
-## 🌐 Deployment
-
-YieldScapeUSA is deployed on ShinyApps.io and can be accessed [here](https://sammajumder.shinyapps.io/YieldScapeUSA/).
 
 ## 🛠️ Local Setup
 

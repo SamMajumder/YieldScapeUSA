@@ -1,8 +1,6 @@
 ---
-title: "Tutorial"
-author: "Dr. Sambadi Majumder"
-format: 
-  html:
+format:
+  html: 
     self-contained: true
 editor: visual
 ---
@@ -11,7 +9,9 @@ editor: visual
 
 ***YieldScapeUSA*** is an interactive visualization tool designed to illustrate agricultural yield data across the United States. In this tutorial I will be showing you how I am building this tool. I am going to be using the cultivation information of oilseed sunflower in the US as a way to demonstrate the method of preparing the data for using this tool.
 
-I will also be showing you how to build the app from scratch.
+I will also be showing you how to build the app from scratch. The code can be found [here](https://github.com/SamMajumder/YieldScapeUSA)
+
+You can check out the app [here](https://sammajumder.shinyapps.io/YieldScapeUSA/)
 
 Before we begin, I wanted to share some information about oil seed sunflower cultivation recorded by the USDA across the main producing states.
 
@@ -429,7 +429,7 @@ The shiny app is deployed [here](https://sammajumder.shinyapps.io/YieldScapeUSA/
 
 and here is a screenshot of what the app looks like so far
 
-![](Screenshot (818).png)
+![](Screenshot%20(818).png)
 
 1\) The app prompts the user for the file which contains spatial information in the RDS format
 
@@ -438,3 +438,7 @@ and here is a screenshot of what the app looks like so far
 3\) Similarly, columns which have the temporal information (Year, month etc), admin zones 1 and 2 (for example: state followed by county), the value to be visualized (for example seed yield) need to be selected by the user.
 
 4\) The app is interactive, which means, the user will be able to know the specific value of yield/area planted/area harvested for any location within the choropleth map
+
+Here is a snippet of how the app works:
+
+![](1cf2e82f-d3ae-441b-a6bc-dea016c6b610.gif)

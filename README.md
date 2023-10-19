@@ -15,6 +15,9 @@ YieldScapeUSA is deployed on ShinyApps.io and can be accessed [here](https://sam
 - **Dynamic Time Slider ⏳**: Adjust the time slider to view yield data for specific years, dynamically changing based on your data.
 - **Color-Coded Yield Values 🎨**: Yield values are color-coded for visual distinction between high and low yield areas. (Choropleth maps)
 - **Detailed Hover Information ℹ️**: Hover over a region to view detailed yield information, including state and county names alongside yield values.
+- **Admin Level Analysis 📊**: Visualize average yield trends over time with line plots, faceted by the first level of administrative division.
+- **Admin 2 Level Analysis 📈**: Explore the top 5 counties in terms of total yield with bar plots, faceted by the first level of administrative division.
+- **Customizable Color Palette 🌈**: Choose different color palettes for the line and bar plots to suit your visual preferences.
 
 
 ## 📊 Data
@@ -26,13 +29,13 @@ The app accepts RDS files containing spatial data. Here are the expectations for
 
 1. **File Format**: The data file should be in RDS format.
 2. **Spatial Data**: The data should contain spatial geometry information for accurate mapping.
-3. **Columns**: 
+3. **Columns**:
    - A `Geometry` column representing the spatial geometry of each data point.
    - A `Time` column representing the time dimension (e.g., year) of the data.
    - An `Admin` column representing the first level of administrative division (e.g., State).
    - An `Admin 2` column representing the second level of administrative division (e.g., County).
    - A `Value` column representing the yield values or any other values that you wish to visualize
-   
+
    The actual column names in your data can be different, as you will direct the app to the appropriate columns through dropdown selections.
 
 ### Example Data Structure 📋

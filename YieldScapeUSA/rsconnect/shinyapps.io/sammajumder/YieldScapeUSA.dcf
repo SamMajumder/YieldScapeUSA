@@ -5,7 +5,7 @@ account: sammajumder
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 10106968
-bundleId: 7769520
+bundleId: 7822455
 url: https://sammajumder.shinyapps.io/YieldScapeUSA/
 version: 1
 asMultiple: FALSE

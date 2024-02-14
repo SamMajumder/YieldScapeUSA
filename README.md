@@ -1,7 +1,7 @@
 
-# 🌾 YieldScapeUSA 🌾
+# 🌾 YieldScape 🌾
 
-YieldScapeUSA is an interactive visualization tool designed to illustrate agricultural yield data across the United States. Initially showcasing oilseed sunflower yield data across counties in North Dakota (ND), South Dakota (SD), and Minnesota (MN), the app now provides a platform for users to upload and visualize their own yield data across different crops and regions.
+YieldScape is an interactive visualization tool designed to illustrate agricultural yield data across given geographic locations. Initially showcasing oilseed sunflower yield data across counties in North Dakota (ND), South Dakota (SD), and Minnesota (MN), the app now provides a platform for users to upload and visualize their own yield data across different crops and regions.
 
 ## 🌐 Deployment (check out the app)
 
@@ -10,7 +10,7 @@ YieldScapeUSA is deployed on ShinyApps.io and can be accessed [here](https://sam
 ## 🚀 Features
 
 - **Interactive Map 🗺️**: Engage with a dynamic map to explore yield data across various geographical regions.
-- **Custom Data Upload 📤**: Upload your own RDS data file to visualize yield statistics for different crops and locations.
+- **Custom Data Upload 📤**: Upload your own shapefile (**upload all three files i.e., .shp, .shx and .dbf**) to visualize yield statistics for different crops and locations.
 - **Dynamic Selections ⚙️**: Choose geometry, time, administrative, and value columns from your data to suit your analysis needs.
 - **Dynamic Time Slider ⏳**: Adjust the time slider to view yield data for specific years, dynamically changing based on your data.
 - **Color-Coded Yield Values 🎨**: Yield values are color-coded for visual distinction between high and low yield areas. (Choropleth maps)
@@ -25,9 +25,9 @@ YieldScapeUSA is deployed on ShinyApps.io and can be accessed [here](https://sam
 The data visualized in the app is user-provided, allowing for a wide variety of agricultural yield data to be displayed. This feature enables the app to serve as a flexible tool for analyzing yield trends across different crops and regions over time.
 
 ### Input Expectations 📑
-The app accepts RDS files containing spatial data. Here are the expectations for the input data to ensure accurate visualization:
+The app accepts shapefiles containing spatial data (**Make sure to upload the .shp, and corresponding .shx and .dbf files**). Here are the expectations for the input data to ensure accurate visualization:
 
-1. **File Format**: The data file should be in RDS format.
+1. **File Format**: The data file should be in shapefile format.
 2. **Spatial Data**: The data should contain spatial geometry information for accurate mapping.
 3. **Columns**:
    - A `Geometry` column representing the spatial geometry of each data point.

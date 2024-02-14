@@ -3,6 +3,8 @@ rm(list = ls())
 
 packages <- c("tidyUSDA","tidyverse","sf","here","leaflet")
 
+
+
 lapply(packages, require,character.only =T)
 
 ####
@@ -144,7 +146,7 @@ Sunflower <- Sunflower %>%
   group_by(STATE, YEAR) %>%
   filter(n_distinct(COUNTYNAME) > 1 & any(!is.na(YIELD))) %>%
   ungroup() %>%
-  # Convert to simple features object (if your data is spatial)
+  # Convert to simple features object 
   st_as_sf() 
 
 
@@ -160,6 +162,17 @@ path_to_save <- here("YieldScapeUSA",
 saveRDS(Sunflower,path_to_save)
 
 
+#### save as a shapefile ###
+
+path_to_save_shape <- here("Shapefile",
+                           "Sunflower.shp")
+
+sf::st_write(Sunflower, path_to_save_shape)
+
+
+
+test <- sf::st_read(here("Shapefile",
+                 "Sunflower.shp"))
 
 
 

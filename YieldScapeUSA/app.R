@@ -1,16 +1,26 @@
 
 # Load necessary libraries
+
 library(shiny)
-library(leaflet)
 library(sf)
-library(tidyverse)
+library(leaflet)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+# Increase maximum file upload size to 1000MB
+options(shiny.maxRequestSize = 1000 * 1024^2)
+
 
 # UI
 ui <- fluidPage(
-  titlePanel("Interactive Analysis"),
+  titlePanel("YieldScape"),
   sidebarLayout(
     sidebarPanel(
-      fileInput("file", "Upload your RDS file", accept = c(".rds")),
+      fileInput("shapefile", "Upload Shapefile Components (.shp, .shx, .dbf files)", 
+                accept = c('.shp', '.shx', '.dbf'),
+                multiple = TRUE, 
+                placeholder = "Select all .shp, .shx, and .dbf files together"),
       uiOutput("geometry_ui"),
       uiOutput("time_ui"),
       uiOutput("admin_ui"),
@@ -30,11 +40,11 @@ ui <- fluidPage(
                  plotOutput("bar_plot",width = "100%", height = "600px")),
         tabPanel("About",
                  HTML("
-                 <h2>Welcome to YieldScapeUSA!</h2>
+                 <h2>Welcome to YieldScape!</h2>
                  <p>YieldScapeUSA is an interactive platform crafted to visualize agricultural yield data across the United States. Initially designed to display oilseed sunflower yield data across counties in North Dakota, South Dakota, and Minnesota, the app has evolved to allow users to upload and visualize their own yield data across various crops and regions.</p>
                  <h3>How to Use:</h3>
                  <ol>
-                   <li><strong>Data Upload:</strong> Upload your own RDS data file to explore yield statistics for different crops and locations.</li>
+                   <li><strong>Data Upload:</strong> Upload your own shapefile to explore yield statistics for different crops and locations.</li>
                    <li><strong>Dynamic Selections:</strong> Select the appropriate columns for geometry, time, administrative divisions, and yield values to tailor the analysis to your data.</li>
                    <li><strong>Interactive Map:</strong> Engage with the dynamic map to explore yield data across different geographical regions. Hover over a region to view detailed yield information.</li>
                    <li><strong>Time Analysis:</strong> Use the time slider to view yield data for specific years, which dynamically adjusts based on your data.</li>
@@ -44,7 +54,7 @@ ui <- fluidPage(
                  </ol>
                  <h3>Input File Expectations:</h3>
                  <ul>
-                   <li><strong>File Format:</strong> Your data file should be in RDS format.</li>
+                   <li><strong>File Format:</strong> Your data file should be in shapefile format (.shp, .shx, .dbf).</li>
                    <li><strong>Spatial Data:</strong> Ensure your data contains spatial geometry information for accurate mapping.</li>
                    <li><strong>Required Columns:</strong> 
                        <ul>
@@ -56,42 +66,44 @@ ui <- fluidPage(
                        </ul>
                    </li>
                  </ul>
-                 <h3>Example Data Structure:</h3>
-                 <table border='1'>
-                   <thead>
-                     <tr>
-                       <th>Geometry</th><th>Time</th><th>Admin</th><th>Admin 2</th><th>Value</th>
-                     </tr>
-                   </thead>
-                   <tbody>
-                     <tr>
-                       <td>...</td><td>1976</td><td>ND</td><td>Stark</td><td>1234</td>
-                     </tr>
-                     <tr>
-                       <td>...</td><td>1976</td><td>ND</td><td>Dunn</td><td>5678</td>
-                     </tr>
-                     <tr>
-                       <td>...</td><td>1977</td><td>SD</td><td>Jones</td><td>9101</td>
-                     </tr>
-                     <tr>
-                       <td>...</td><td>1977</td><td>SD</td><td>Lyman</td><td>1121</td>
-                     </tr>
-                   </tbody>
-                 </table>
                  "))
       )
     )
   )
 )
 
-
+# Server
 server <- function(input, output, session) {
   
-  library(sf)  # Ensure the sf package is loaded
-  
   data_reactive <- reactive({
-    req(input$file)
-    readRDS(input$file$datapath)
+    req(input$shapefile)
+    
+    # Read the uploaded shapefile components
+    tempDir <- tempdir()
+    file_paths <- lapply(1:length(input$shapefile$name), function(i) {
+      file.copy(input$shapefile$datapath[i], 
+                file.path(tempDir, input$shapefile$name[i]))
+      file.path(tempDir, input$shapefile$name[i])
+    })
+    
+    # Check if all required components are present
+    required_extensions <- c("shp", "shx", "dbf")
+    uploaded_extensions <- tools::file_ext(input$shapefile$name)
+    if (!all(tolower(required_extensions) %in% tolower(uploaded_extensions))) {
+      showModal(modalDialog(
+        title = "Error",
+        "Please make sure you upload all parts of the shapefile (.shp, .shx, .dbf).",
+        easyClose = TRUE,
+        footer = NULL
+      ))
+      return(NULL)
+    }
+    
+    # Read the shapefile using the .shp file path
+    shp_path <- file_paths[tools::file_ext(input$shapefile$name) %in% "shp"][1]
+    shape_sf <- st_read(dsn = shp_path)
+    
+    return(shape_sf)
   })
   
   output$geometry_ui <- renderUI({
@@ -130,7 +142,6 @@ server <- function(input, output, session) {
                 step = 1)
   })
   
-  # Create a new reactive function for the filtered data
   # Create a new reactive function for the filtered data
   filtered_data <- reactive({
     req(input$time_slider)
@@ -228,7 +239,3 @@ server <- function(input, output, session) {
 }
 
 shinyApp(ui, server)
-
-
-
-  
